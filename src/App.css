@@ -13,7 +13,7 @@
   }
 }
 
-.App-header {
+.App-header body {
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
@@ -32,7 +32,20 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+.button {
+  background-color: "white";
+  border-radius:12;
+  color:'black';
+  padding:8;
+  margin-bottom:12;
+  padding-left:16;
+  padding-right:16;
+  box-shadow: '0 0 20px rgba(0, 0, 0, 0.5)';
+  border-width:0;
 }
