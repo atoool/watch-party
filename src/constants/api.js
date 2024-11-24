@@ -3,4 +3,4 @@ const apiType={
     dev:"http://localhost:5001"
 }
 
-export const api=apiType.dev
+export const api=apiType.production
