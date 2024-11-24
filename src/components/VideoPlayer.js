@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactPlayer from "react-player";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5001");
+const socket = io("https://watch-party-backend-sppv.onrender.com");
 
 const VideoPlayer = () => {
     const playerRef = useRef(null);
