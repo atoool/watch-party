@@ -38,6 +38,9 @@
     cursor: pointer;
     transition: all 0.3s ease;
     width: 20%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .logout-btn:hover {
@@ -144,7 +147,11 @@
 
     .video-page {
         margin-right: 0;
-        margin-bottom: 50vh;
+        min-height: 50vh;
+    }
+    .set-video-btn, .play-pause-btn {
+        width: 100%;
+        flex-direction: column;
     }
 }
 
