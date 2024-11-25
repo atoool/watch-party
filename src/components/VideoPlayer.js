@@ -4,6 +4,7 @@ import ReactPlayer from "react-player";
 import { useUser } from '../context/UserContext';
 import './VideoPlayer.css';
 import { socket } from "../socket/socket";
+import { useVideoCall } from "../context/VideoCallContext";
 
 const VideoPlayer = () => {
   const playerRef = useRef(null);
@@ -13,6 +14,7 @@ const VideoPlayer = () => {
     "https://www.youtube.com/watch?v=d9IKg-nizhQ"
   );
   const { userData, clearUserData } = useUser();
+  const { setIsVideoCallActive } = useVideoCall();
 
   useEffect(() => {
     socket.on("videoAction", (data) => {
@@ -48,8 +50,11 @@ const VideoPlayer = () => {
   }
 
   const handleLogout = () => {
-    socket.disconnect();
-    clearUserData();
+    setIsVideoCallActive(false)
+    setTimeout(() => {
+      socket.disconnect();
+      clearUserData();
+    }, 100);
   };
 
   return (

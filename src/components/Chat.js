@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useUser } from '../context/UserContext';
 import './Chat.css';
 import { socket } from "../socket/socket";
+import VideoCall from './VideoCall';
+import { useVideoCall } from '../context/VideoCallContext';
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);
@@ -10,6 +12,7 @@ const Chat = () => {
     const [userCount, setCount] = useState(0);
     const { userData } = useUser();
     const messagesEndRef = useRef(null);
+    const { isVideoCallActive, setIsVideoCallActive } = useVideoCall();
 
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
@@ -59,37 +62,56 @@ const Chat = () => {
     };
 
     return (
-        <div className="chat-container">
-            <div className="chat-header">
-                <h3>Live Chat</h3>
-                <span className="online-count">Online: {userCount}</span>
-            </div>
-            
-            <div className="messages-container">
-                {messages.map((msg, index) => (
-                    <div 
-                        key={index} 
-                        className={`message ${msg.isSelf ? 'self' : 'other'}`}
-                    >
-                        <span className="message-user">{msg.user}</span>
-                        <div className="message-content">{msg.text}</div>
-                    </div>
-                ))}
-                <div ref={messagesEndRef} />
-            </div>
+        <div className="chat-wrapper">
 
-            <form className="chat-input-form" onSubmit={sendMessage}>
-                <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    className="chat-input"
-                />
-                <button type="submit" className="send-button">
-                    Send
-                </button>
-            </form>
+            <div className="chat-container">
+                
+                <div className="chat-header">
+                    <button 
+                        className="video-call-toggle"
+                        onClick={() => setIsVideoCallActive(!isVideoCallActive)}
+                    >
+                        {isVideoCallActive ? '📞 End Call' : '📞 Start Call'}
+                    </button>
+                </div>
+                
+                <div className={`chat-messages ${isVideoCallActive ? 'with-video' : ''}`}>
+                    {messages.map((msg, index) => (
+                        <div 
+                            key={index} 
+                            className={`message ${msg.isSelf ? 'self' : 'other'}`}
+                        >
+                            <span className="message-user">{msg.user}</span>
+                            <div className="message-content">{msg.text}</div>
+                        </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {isVideoCallActive && (
+                    <div className="video-call-wrapper">
+                        <VideoCall 
+                            roomId={userData.channel} 
+                            username={userData.username}
+                            socket={socket}
+                            onEndCall={() => setIsVideoCallActive(false)}
+                        />
+                    </div>
+                )}
+
+                <form className="chat-input-form" onSubmit={sendMessage}>
+                    <input
+                        type="text"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        className="chat-input"
+                    />
+                    <button type="submit" className="send-button">
+                        Send
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

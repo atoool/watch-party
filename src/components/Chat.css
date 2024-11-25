@@ -10,7 +10,9 @@
     top: 0;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
 }
-
+.chat-messages{
+    flex: 1;
+}
 .chat-header {
     padding: 1rem;
     background-color: #333;

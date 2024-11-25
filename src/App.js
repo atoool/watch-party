@@ -4,6 +4,7 @@ import VideoPlayer from "./components/VideoPlayer";
 import Chat from "./components/Chat";
 import Home from "./components/Home";
 import { UserProvider } from './context/UserContext';
+import { VideoCallProvider } from './context/VideoCallContext';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -26,19 +27,21 @@ const WatchPage = () => {
 const App = () => {
     return (
         <BrowserRouter>
-            <UserProvider>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route 
-                        path="/watch" 
-                        element={
-                            <ProtectedRoute>
-                                <WatchPage />
-                            </ProtectedRoute>
-                        } 
-                    />
-                </Routes>
-            </UserProvider>
+            <VideoCallProvider>
+                <UserProvider>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route 
+                            path="/watch" 
+                            element={
+                                <ProtectedRoute>
+                                    <WatchPage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                    </Routes>
+                </UserProvider>
+            </VideoCallProvider>
         </BrowserRouter>
     );
 };
