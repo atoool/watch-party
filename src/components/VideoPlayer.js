@@ -72,35 +72,6 @@ const VideoPlayer = () => {
       </div>
       
       <div className="video-container">
-      {playURL.includes("netflix.com") ? (
-        <iframe
-          ref={playerRef}
-          src={playURL}
-          width="100%"
-          height="100%"
-          allow="autoplay; encrypted-media"
-          allowFullScreen
-          className="react-player"
-          title="Video Player"
-          onLoad={() => {
-            const iframe = playerRef.current;
-            iframe.contentWindow.postMessage({ event: 'listening' }, '*');
-            window.addEventListener('message', (event) => {
-              if (event.origin !== new URL(playURL).origin) return;
-              if (event.data.event === 'pause') {
-                setPlaying(false);
-                socket.emit("videoTriggered", { action: "pause", roomId: userData?.channel });
-              }else if (event.data.event === 'play') {
-                setPlaying(false);
-                socket.emit("videoTriggered", { action: "play", roomId: userData?.channel });
-              }  else if (event.data.event === 'seek') {
-                const time = event.data.time;
-                handleSeek(time);
-              }
-            });
-          }}
-        />
-        ) : (
         <ReactPlayer
           ref={playerRef}
           url={playURL}
@@ -111,7 +82,7 @@ const VideoPlayer = () => {
           width="100%"
           height="100%"
           className="react-player"
-        />)}
+        />
       </div>
 
       <div className="video-controls">
