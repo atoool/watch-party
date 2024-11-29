@@ -1,29 +1,58 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import Draggable from 'react-draggable';
+import { useVideoCall } from '../context/VideoCallContext';
 import { socket } from '../socket/socket';
 import './VideoCall.css';
 
-const VideoCall = ({ roomId, username }) => {
-    const [stream, setStream] = useState(null);
-    const [peers, setPeers] = useState({});
-    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-    
+const VideoCall = forwardRef(({ roomId, username }, ref) => {
+    const {
+        stream,
+        setStream,
+        peers,
+        setPeers,
+        isAudioEnabled,
+        setIsAudioEnabled,
+        isVideoEnabled,
+        setIsVideoEnabled,
+        peerConnections,
+        onCleanup,
+    } = useVideoCall();
+    const { setIsVideoCallActive } = useVideoCall();
     const localVideoRef = useRef();
-    const peerConnections = useRef({});
+    const videoCallRef = useRef();
+
+    // Expose the cleanup function to the parent component
+    useImperativeHandle(ref, () => ({
+        onCleanup: () => onCleanup(roomId),
+    }));
+
+    const endCall = async () => {
+        await onCleanup(roomId).catch(err => console.error('Error ending call:', err));
+        setIsAudioEnabled(false);
+        setIsVideoEnabled(false);
+        setIsVideoCallActive(false);
+        window.location.reload()
+    };
 
     useEffect(() => {
-        // Get user media
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then(stream => {
-                setStream(stream);
-                if (localVideoRef.current) {
-                    localVideoRef.current.srcObject = stream;
-                }
-                
-                // Join video room
-                socket.emit('joinVideoRoom', { roomId, username });
-            })
-            .catch(err => console.error('Media error:', err));
+        // Check if media devices are supported
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // Get user media
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    setStream(stream);
+                    if (localVideoRef.current) {
+                        localVideoRef.current.srcObject = stream;
+                    }
+                    
+                    // Join video room
+                    socket.emit('joinVideoRoom', { roomId, username });
+                })
+                .catch(err => console.error('Media error:', err));
+        } else {
+            console.error('Media devices are not supported on this device.');
+            alert('Media devices are not supported on this device.');
+        }
 
         // Socket event listeners
         socket.on('userJoinedCall', handleUserJoined);
@@ -32,28 +61,17 @@ const VideoCall = ({ roomId, username }) => {
         socket.on('iceCandidate', handleIceCandidate);
         socket.on('userLeftCall', handleUserLeft);
 
-        return () => {
-            socket.emit('leaveVideoRoom', { roomId });
-            // Cleanup
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            
-            if (peerConnections.current) {
-                Object.values(peerConnections.current).forEach(pc => {
-                    if (pc) pc.close();
-                });
-            }
-            
-            socket.off('userJoinedCall');
-            socket.off('offer');
-            socket.off('answer');
-            socket.off('iceCandidate');
-            socket.off('userLeftCall');
-        };
+        // return () => {
+        //     socket.off('userJoinedCall', handleUserJoined);
+        //     socket.off('offer', handleOffer);
+        //     socket.off('answer', handleAnswer);
+        //     socket.off('iceCandidate', handleIceCandidate);
+        //     socket.off('userLeftCall', handleUserLeft);
+        // };
     }, [roomId, username]);
 
     const createPeerConnection = (userId) => {
+        console.log('Creating peer connection for user:', userId);
         const pc = new RTCPeerConnection({
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -63,6 +81,7 @@ const VideoCall = ({ roomId, username }) => {
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
+                console.log('Sending ICE candidate to user:', userId);
                 socket.emit('iceCandidate', {
                     candidate: event.candidate,
                     to: userId,
@@ -72,6 +91,7 @@ const VideoCall = ({ roomId, username }) => {
         };
 
         pc.ontrack = (event) => {
+            console.log('Received remote stream from user:', userId);
             setPeers(prev => ({
                 ...prev,
                 [userId]: event.streams[0]
@@ -86,12 +106,14 @@ const VideoCall = ({ roomId, username }) => {
     };
 
     const handleUserJoined = async ({ userId }) => {
+        console.log('User joined call:', userId);
         const pc = createPeerConnection(userId);
         peerConnections.current[userId] = pc;
 
         try {
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
+            console.log('Sending offer to user:', userId);
             socket.emit('offer', {
                 offer,
                 to: userId,
@@ -103,6 +125,7 @@ const VideoCall = ({ roomId, username }) => {
     };
 
     const handleOffer = async ({ offer, from }) => {
+        console.log('Received offer from user:', from);
         const pc = createPeerConnection(from);
         peerConnections.current[from] = pc;
 
@@ -110,6 +133,7 @@ const VideoCall = ({ roomId, username }) => {
             await pc.setRemoteDescription(offer);
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
+            console.log('Sending answer to user:', from);
             socket.emit('answer', {
                 answer,
                 to: from,
@@ -121,24 +145,31 @@ const VideoCall = ({ roomId, username }) => {
     };
 
     const handleAnswer = ({ answer, from }) => {
+        console.log('Received answer from user:', from);
         const pc = peerConnections.current[from];
         if (pc) {
             pc.setRemoteDescription(answer)
                 .catch(err => console.error('Error setting remote description:', err));
+        } else {
+            console.error('Peer connection not found for user:', from);
         }
     };
 
     const handleIceCandidate = ({ candidate, from }) => {
+        console.log('Received ICE candidate from user:', from);
         const pc = peerConnections.current[from];
         if (pc) {
             pc.addIceCandidate(new RTCIceCandidate(candidate))
                 .catch(err => {
                     console.error('Error adding ice candidate:', err);
                 });
+        } else {
+            console.error('Peer connection not found for user:', from);
         }
     };
 
     const handleUserLeft = ({ userId }) => {
+        console.log('User left call:', userId);
         if (peerConnections.current[userId]) {
             peerConnections.current[userId].close();
             delete peerConnections.current[userId];
@@ -169,42 +200,63 @@ const VideoCall = ({ roomId, username }) => {
     };
 
     return (
-        <div className="video-call-container">
-            <div className="video-grid">
-                <div className="video-item">
-                    <video
-                        ref={localVideoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        className="video-element"
-                    />
-                    <div className="video-label">You</div>
+        <Draggable>
+            <div 
+                className="video-call-container" 
+                ref={videoCallRef}
+            >
+                {/* Main video area (remote peer) */}
+                <div className="video-grid">
+                    {Object.entries(peers).map(([userId, stream]) => (
+                        <div key={userId} className="video-item">
+                            <video
+                                autoPlay
+                                src={stream}
+                                className="video-element remote-video"
+                                ref={(el) => {
+                                    if (el) el.srcObject = stream;
+                                }}
+                            />
+                            <div className="video-label">Peer</div>
+                        </div>
+                    ))}
+                    
+                    {/* If no peers, show placeholder */}
+                    {Object.keys(peers).length === 0 && (
+                        <div className="main-video placeholder">
+                            <div className="waiting-message">Waiting for others to join...</div>
+                        </div>
+                    )}
                 </div>
-                {Object.entries(peers).map(([userId, stream]) => (
-                    <div key={userId} className="video-item">
-                        <video
-                            autoPlay
-                            playsInline
-                            className="video-element"
-                            ref={el => {
-                                if (el) el.srcObject = stream;
-                            }}
-                        />
-                        <div className="video-label">Peer</div>
-                    </div>
-                ))}
-            </div>
-            <div className="controls">
-                <button onClick={toggleAudio}>
-                    {isAudioEnabled ? '🎙️' : '🔇'}
-                </button>
-                <button onClick={toggleVideo}>
-                    {isVideoEnabled ? '📹' : '🚫'}
-                </button>
-            </div>
-        </div>
-    );
-};
 
-export default VideoCall; 
+                <div className="controls">
+                    <button onClick={toggleAudio}>
+                        {isAudioEnabled ? '🎙️' : '🔇'}
+                    </button>
+                    <button onClick={toggleVideo}>
+                        {isVideoEnabled ? '📹' : '🚫'}
+                    </button>
+                    <button 
+                        onClick={endCall}
+                        className="end-call-btn"
+                    >
+                        ❌
+                    </button>
+                    {/* Local video (picture-in-picture style) */}
+                    {/* <div className="pip-video">
+                        <video
+                            ref={localVideoRef}
+                            autoPlay
+                            muted
+                            playsInline
+                            className="video-element local-video"
+                        />
+                        <div className="video-label">You</div>
+                    </div> */}
+                </div>
+            </div>
+        </Draggable>
+    );
+});
+
+export default VideoCall;

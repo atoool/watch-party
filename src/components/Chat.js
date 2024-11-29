@@ -13,6 +13,7 @@ const Chat = () => {
     const { userData } = useUser();
     const messagesEndRef = useRef(null);
     const { isVideoCallActive, setIsVideoCallActive } = useVideoCall();
+    const videoCallRef = useRef()
 
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
@@ -66,14 +67,14 @@ const Chat = () => {
 
             <div className="chat-container">
                 
-                <div className="chat-header">
+                {!isVideoCallActive&&<div className="chat-header">
                     <button 
                         className="video-call-toggle"
-                        onClick={() => setIsVideoCallActive(!isVideoCallActive)}
+                        onClick={() => setIsVideoCallActive(true)}
                     >
                         {isVideoCallActive ? '📞 End Call' : '📞 Start Call'}
                     </button>
-                </div>
+                </div>}
                 
                 <div className={`chat-messages ${isVideoCallActive ? 'with-video' : ''}`}>
                     {messages.map((msg, index) => (
@@ -88,16 +89,16 @@ const Chat = () => {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {isVideoCallActive && (
+                {/* {isVideoCallActive && (
                     <div className="video-call-wrapper">
                         <VideoCall 
                             roomId={userData.channel} 
                             username={userData.username}
                             socket={socket}
-                            onEndCall={() => setIsVideoCallActive(false)}
+                            ref={videoCallRef}
                         />
                     </div>
-                )}
+                )} */}
 
                 <form className="chat-input-form" onSubmit={sendMessage}>
                     <input

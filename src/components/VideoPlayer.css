@@ -134,6 +134,7 @@
 
     .url-input-container {
         width: 100%;
+        flex-direction:column;
     }
 
     .user-info {
@@ -147,7 +148,7 @@
 
     .video-page {
         margin-right: 0;
-        min-height: 50vh;
+        min-height: 100vh;
     }
     .set-video-btn, .play-pause-btn {
         width: 100%;
@@ -184,3 +185,28 @@
 .play-pause-btn:active {
     transform: translateY(0);
 } 
+
+.play-pause-btn,
+.seek-backward-btn,
+.seek-forward-btn {
+  padding: 10px 20px;
+  margin: 5px;
+  background-color: #008cba;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.play-pause-btn:hover,
+.seek-backward-btn:hover,
+.seek-forward-btn:hover {
+  background-color: #007bb5;
+}
+
+.seek-buttons-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px;
+}

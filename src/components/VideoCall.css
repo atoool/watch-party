@@ -1,73 +1,107 @@
+
 .video-call-container {
-    position: fixed;
-    bottom: 0;
-    right: 0;
+    position: absolute;
     width: 300px;
-    background: #1a1a1a;
-    padding: 1rem;
-    border-left: 1px solid #333;
+    height: 400px;
+    background-color: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    right: 0;
+    top: 0;
 }
 
 .video-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
 }
 
 .video-item {
+    width: 100%;
+    margin-bottom: 10px;
     position: relative;
-    aspect-ratio: 16/9;
-    background: #000;
-    border-radius: 8px;
-    overflow: hidden;
 }
 
 .video-element {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1)
+    height: auto;
+    border-radius: 5px;
+    transform: scaleX(-1);
+}
+
+.remote-video {
+    width: 100%;
+}
+
+.local-video {
+    width: 76px;
+    height: 76px;
+    /* position: absolute;
+    bottom: 0px;
+    right: 0px; */
+    border: 2px solid white;
+    border-radius: 5px;
 }
 
 .video-label {
     position: absolute;
-    bottom: 0.5rem;
-    left: 0.5rem;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    bottom: 5px;
+    left: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 12px;
 }
 
 .controls {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
-    padding: 1rem;
+    justify-content: space-around;
+    background-color: #444;
+    border-top: 1px solid #555;
+    align-items: center;
 }
 
 .controls button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    background: none;
     border: none;
-    background: #333;
     color: white;
+    font-size: 20px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    
     display: flex;
-    align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
-    padding: 0;
-    line-height: 1;
+    align-items: center;
 }
 
 .controls button:hover {
-    background: #444;
-    transform: scale(1.1);
+    color: #ddd;
+}
+
+.end-call-btn {
+    color: red;
+}
+
+.placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #aaa;
+}
+
+.waiting-message {
+    text-align: center;
+    font-size: 16px;
+}
+
+.hide{
+    display: none;
 }
 
 @media (max-width: 768px) {

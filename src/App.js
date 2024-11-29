@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children }) => {
 
 const WatchPage = () => {
     return (
-        <div style={{overflowY:'scroll'}}>
+        <div style={{overflowY:'none'}}>
             <VideoPlayer />
             <Chat />
         </div>
