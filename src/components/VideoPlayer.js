@@ -77,7 +77,7 @@ const VideoPlayer = () => {
           url={playURL}
           playing={playing}
           controls={true}
-          onSeek={(e) => handleSeek(e)}
+          // onSeek={(e) => handleSeek(e)}
           progressInterval={1000}
           width="100%"
           height="100%"
