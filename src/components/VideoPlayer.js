@@ -11,7 +11,7 @@ const VideoPlayer = () => {
   const [playing, setPlaying] = useState(false);
   const [url, setURL] = useState("");
   const [playURL, setPlayURL] = useState(
-    "https://www.netflix.com/watch/81902035?trackId=15035895&tctx=1%2C0%2C6c58d0df-6726-46ab-80f5-629c12aab7ba-142169753%2CNES_D49BDDF0B4C6E225E91ECEEEC727DB-A3F87CB3ABAB23-286C862483_p_1732901177995%2CNES_D49BDDF0B4C6E225E91ECEEEC727DB_p_1732901177995%2C%2C%2C%2C%2CVideo%3A81902035%2CminiDpPlayButton"
+    "https://www.youtube.com/watch?v=d9IKg-nizhQ"
   );
   const { userData, clearUserData } = useUser();
   const { onCleanup, setIsVideoCallActive } = useVideoCall();
@@ -78,6 +78,7 @@ const VideoPlayer = () => {
           src={playURL}
           width="100%"
           height="100%"
+          allow="autoplay; encrypted-media"
           allowFullScreen
           className="react-player"
           title="Video Player"
