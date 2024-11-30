@@ -401,6 +401,11 @@
         margin-right: 0;
         min-height: 100vh;
     }
+
+    .video-buttons {
+        width: 100%;
+    }
+
     .set-video-btn, .play-pause-btn, .close-btn {
         width: 50%;
         flex-direction: column;
