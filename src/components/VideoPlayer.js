@@ -6,6 +6,7 @@ import './VideoPlayer.css';
 import { socket } from "../socket/socket";
 import { useVideoCall } from "../context/VideoCallContext";
 import { FaBars, FaLink, FaSignOutAlt } from 'react-icons/fa'; // Import icons
+import { api } from "../constants/api";
 
 const VideoPlayer = () => {
   const playerRef = useRef(null);
@@ -68,9 +69,27 @@ const VideoPlayer = () => {
     socket.emit("videoTriggered", { action: "seek", time,roomId:userData?.channel });
   };
 
-  const newVideo = () => {
-    setPlayURL(url);
-    socket.emit("videoTriggered", { action:'setVideo@'+url,roomId:userData?.channel });
+  const transcodeVideo = async (videoUrl) => {
+    const response = await fetch(api+'/transcode', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ videoUrl }),
+    });
+    const data = await response.json();
+    return data.videoUrl;
+  };
+
+  const newVideo = async() => {
+    let videoUrl = url;
+    if (url.endsWith('.mkv')) {
+      videoUrl = await transcodeVideo(url);
+      videoUrl = api + videoUrl;
+      setPlayURL(videoUrl);
+    }
+    setPlayURL(videoUrl);
+    socket.emit("videoTriggered", { action:'setVideo@'+videoUrl,roomId:userData?.channel });
     setIsModalOpen(false)
   }
 
