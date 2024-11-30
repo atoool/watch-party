@@ -47,11 +47,13 @@ const VideoPlayer = () => {
         setTimeout(() => {
           setTriggeringAllowed(true)
         }, 3000);
-      }else if (data.action?.includes("setVideo")) {
-        console.log(data?.action)
-        const v=data?.action?.split('@')[1]
-        console.log(v)
-        setPlayURL(v)
+      }else if (data.action === "videourl") {
+        if (Array.isArray(data?.url)) {
+          const formattedUrls = data.url.map((itm) => ({ src: itm, type: 'video/mp4' }));
+          setPlayURL(formattedUrls);
+        } else {
+          setPlayURL(data?.url);
+        }
       }
     });
 
@@ -75,7 +77,7 @@ const VideoPlayer = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ videoUrl }),
+      body: JSON.stringify({ videoUrl, roomId: userData?.channel }),
     });
     const data = await response.json();
     return data.videoUrl;
@@ -83,13 +85,12 @@ const VideoPlayer = () => {
 
   const newVideo = async() => {
     let videoUrl = url;
-    if (url.endsWith('.mkv')) {
-      videoUrl = await transcodeVideo(url);
-      videoUrl = api + videoUrl;
-      setPlayURL(videoUrl);
-    }
-    setPlayURL(videoUrl);
-    socket.emit("videoTriggered", { action:'setVideo@'+videoUrl,roomId:userData?.channel });
+    // if (url.endsWith('.mkv')||url.includes('.mkv?')) {
+    //   videoUrl = await transcodeVideo(url);
+    //   videoUrl =!!videoUrl? api + videoUrl:url;
+    // }else{
+      socket.emit("videoTriggered", { action:'videourl',url:videoUrl,roomId:userData?.channel });
+    // }
     setIsModalOpen(false)
   }
 
@@ -169,6 +170,7 @@ const VideoPlayer = () => {
         <ReactPlayer
           ref={playerRef}
           url={playURL}
+          key={playURL}
           stopOnUnmount={true}
           onPlay={(e) => handlePlayPause("play",playerRef.current.getCurrentTime())}
           onPause={() => handlePlayPause("pause")}
