@@ -409,5 +409,8 @@
     .set-video-btn, .play-pause-btn, .close-btn {
         width: 50%;
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        display: flex;
     }
 }
